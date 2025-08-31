@@ -7,10 +7,15 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://jitpack.io")}
 }
 
 dependencies {
+    implementation("it.skrape:skrapeit:1.2.2")
     testImplementation(kotlin("test"))
+    implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
 }
 
 tasks.test {

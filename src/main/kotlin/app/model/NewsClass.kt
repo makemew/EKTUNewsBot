@@ -1,6 +1,6 @@
 package app.model
-data class NewsClass(
-    val date: Int,
+data class News(
     val title: String,
-    val link: String
+    val link: String,
+    val photoPath: String
 )

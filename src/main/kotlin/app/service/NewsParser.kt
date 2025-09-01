@@ -1,5 +1,6 @@
 package app.service
 
+import app.model.News
 import it.skrape.core.document
 import it.skrape.fetcher.HttpFetcher
 import it.skrape.fetcher.response
@@ -7,6 +8,7 @@ import it.skrape.fetcher.skrape
 import it.skrape.selects.*
 import it.skrape.selects.html5.*
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 data class MySimpleDataClass(
     val httpStatusCode: Int = 0,
@@ -19,9 +21,8 @@ data class MySimpleDataClass(
 
 class HtmlExtractionService {
 
-    fun extract(): MutableMap<String, String> {
-        val currentDate = LocalDate.now()
-        val mapData = mutableMapOf<String, String>()
+    fun extract(): News {
+
 
         val extracted = skrape(HttpFetcher) {
             request {
@@ -47,33 +48,49 @@ class HtmlExtractionService {
                                 .startsWith("/newsevents/") }
                         }.eachHref
                     }.map {href-> "https://www.ektu.kz$href"},
+                    allImages = document.a {
+                        findAll {
+                            eachSrc.filter {
+                                it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG")
+                            }
+                        }
+                    }
                 )
             }
         }
-        val savedLinks = mutableListOf<String>()
-        for (i in 0 until extracted.allLinks.size) {
-            val date = LocalDate.parse(extracted.allParagraphs[i].take(10))
-            if (date.isAfter(currentDate.minusWeeks(1))) {
-                savedLinks.add(extracted.allLinks[i])
 
-            }
-        }
-        for (i in 0 until savedLinks.size) {
-            val newsPage = skrape(HttpFetcher) {
-                request {
-                    url = extracted.allLinks[i]+"?lang=ru"
-                }
-                response {
-                    MySimpleDataClass(
-                        allParagraphs = document.p { findAll { eachText } },
-                        paragraph = document.h2 { findFirst { text } },
-                        allImages = document.findAll { eachSrc.filter { it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG") } }
-                    )
-                }
-            }
-            println(newsPage.allImages)
-            mapData[newsPage.paragraph] = newsPage.allParagraphs.joinToString("\n\n")
-        }
-        return mapData
+        return News(
+            title = extracted.allParagraphs.first(),
+            link = extracted.allLinks.first(),
+            photoPath = extracted.allImages.first()
+        )
     }
 }
+
+
+/*val currentDate = LocalDate.now()
+        val mapData = mutableMapOf<String, String>()*/
+
+/*val savedLinks = mutableListOf<String>()
+       for (i in 0 until extracted.allLinks.size) {
+           val date = LocalDate.parse(extracted.allParagraphs[i].take(10))
+           if (date.isAfter(currentDate.minusWeeks(1))) {
+               savedLinks.add(extracted.allLinks[i])
+           }
+       }
+
+       for (i in 0 until savedLinks.size) {
+           val newsPage = skrape(HttpFetcher) {
+               request {
+                   url = extracted.allLinks[i]+"?lang=ru"
+               }
+               response {
+                   MySimpleDataClass(
+                       allParagraphs = document.p { findAll { eachText } },
+                       paragraph = document.h1 { findFirst { text } },
+                       allImages = document.findAll { eachSrc.filter { it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG") } }
+                   )
+               }
+           }
+           mapData[newsPage.paragraph] = newsPage.allParagraphs.joinToString("\n\n")
+       }*/

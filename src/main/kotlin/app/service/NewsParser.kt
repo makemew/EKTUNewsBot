@@ -5,10 +5,14 @@ import it.skrape.core.document
 import it.skrape.fetcher.HttpFetcher
 import it.skrape.fetcher.response
 import it.skrape.fetcher.skrape
-import it.skrape.selects.*
-import it.skrape.selects.html5.*
+import it.skrape.selects.eachHref
+import it.skrape.selects.eachSrc
+import it.skrape.selects.eachText
+import it.skrape.selects.html5.a
+import it.skrape.selects.html5.h1
+import it.skrape.selects.html5.li
+import it.skrape.selects.html5.p
 import java.time.LocalDate
-import java.time.format.DateTimeParseException
 
 data class MySimpleDataClass(
     val httpStatusCode: Int = 0,
@@ -23,8 +27,11 @@ class HtmlExtractionService {
 
     fun extract(): News {
 
+        var extracted = MySimpleDataClass()
+        var news = MySimpleDataClass()
+        val savedLinks = mutableListOf<String>()
 
-        val extracted = skrape(HttpFetcher) {
+        skrape(HttpFetcher) {
             request {
                 url = "https://www.ektu.kz/newsevents.aspx?lang=ru"
                 headers = mapOf(
@@ -34,7 +41,7 @@ class HtmlExtractionService {
             }
 
             response {
-                MySimpleDataClass(
+                extracted = MySimpleDataClass(
                     allParagraphs = document.li {
                         findAll {
                             a {
@@ -47,22 +54,31 @@ class HtmlExtractionService {
                             filter { it.attribute("href")
                                 .startsWith("/newsevents/") }
                         }.eachHref
-                    }.map {href-> "https://www.ektu.kz$href"},
-                    allImages = document.a {
-                        findAll {
-                            eachSrc.filter {
-                                it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG")
-                            }
-                        }
-                    }
+                    }.map {href-> "https://www.ektu.kz$href"}
                 )
             }
         }
+        for (i in 0 until 10) {
+            LocalDate.parse(extracted.allParagraphs[i].take(10))
+            savedLinks.add(extracted.allLinks[i])
+        }
 
+        skrape(HttpFetcher) {
+            request {
+                url = extracted.allLinks.first()+"?lang=ru"
+            }
+            response {
+                news = MySimpleDataClass(
+                    allParagraphs = document.p { findAll { eachText } },
+                    paragraph = document.h1 { findFirst { text } },
+                    allImages = document.findAll { eachSrc.filter { it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG") } }
+                )
+            }
+        }
         return News(
-            title = extracted.allParagraphs.first(),
-            link = extracted.allLinks.first(),
-            photoPath = extracted.allImages.first()
+            title = news.paragraph,
+            link = extracted.allLinks.first()+"?lang=ru",
+            photoPath = news.allImages.first()
         )
     }
 }

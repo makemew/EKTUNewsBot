@@ -29,6 +29,7 @@ class HtmlExtractionService {
 
         var extracted = MySimpleDataClass()
         var news = MySimpleDataClass()
+        val newsIndex = 0
 
         skrape(HttpFetcher) {
             request { url = "https://www.ektu.kz/newsevents.aspx?lang=ru" }
@@ -52,7 +53,7 @@ class HtmlExtractionService {
         }
 
         skrape(HttpFetcher) {
-            request { url = extracted.allLinks.first()+"?lang=ru" }
+            request { url = extracted.allLinks[newsIndex]+"?lang=ru" }
             response {
                 news = MySimpleDataClass(
                     allParagraphs = document.p { findAll { eachText } },
@@ -63,9 +64,10 @@ class HtmlExtractionService {
         }
 
         return News(
-            news.paragraph,
-            extracted.allLinks.first(),
-            news.allImages.first()
+            title = news.paragraph,
+            link = extracted.allLinks[newsIndex]+"?lang=ru",
+            photoPath = news.allImages[0],//first image
+            previewText = news.allParagraphs[0]//first paragraph
         )
     }
 }

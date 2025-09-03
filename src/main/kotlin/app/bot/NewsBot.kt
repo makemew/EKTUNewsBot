@@ -15,7 +15,7 @@ const val botToken = "8365634958:AAF8qUD0i12UiFhhiYbFkpSMAESLD3pGVfo"
 
 suspend fun startBot() {
 
-    val chatId = ChatId.fromId(1120184201)
+    val chatId = ChatId.fromId( -1002967159010)
     val bot = bot {
         token = botToken
     }
@@ -30,15 +30,21 @@ suspend fun startBot() {
             news.link,
             news.photoPath
         )
+        val message = buildString {
+            append("<b>${news.title}</b>\n\n")
+            if (news.previewText.isNotBlank()){
+                append(news.previewText+"\n\n")
+            }
+            append("<a href=\"${news.link}\">Продолжение на сайте ВКТУ>>></a>")
+        }
 
         if (isLatestNews(newsParams)) {
             save(newsParams)
                 bot.sendPhoto(
-                    chatId,
-                    TelegramFile.ByFile(File("C:/Shit/images.jpeg")), """<b>${news.title}</b> 
-                |
-                |<a href="${news.link}">Продолжение на сайте ВКТУ>>></a>""".trimMargin(),
-                    ParseMode.HTML,
+                    chatId = chatId,
+                    photo = TelegramFile.ByFile(File("C:/Shit/images.jpeg")),
+                    caption = message,
+                    parseMode = ParseMode.HTML
             )
         }
         delay(5000L)

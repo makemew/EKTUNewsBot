@@ -1,6 +1,7 @@
 package app.service
 
 import app.model.News
+import app.repository.LastMessageRepository
 import it.skrape.core.document
 import it.skrape.fetcher.HttpFetcher
 import it.skrape.fetcher.response
@@ -12,7 +13,6 @@ import it.skrape.selects.html5.a
 import it.skrape.selects.html5.h1
 import it.skrape.selects.html5.li
 import it.skrape.selects.html5.p
-import java.time.LocalDate
 
 data class MySimpleDataClass(
     val httpStatusCode: Int = 0,
@@ -29,17 +29,9 @@ class HtmlExtractionService {
 
         var extracted = MySimpleDataClass()
         var news = MySimpleDataClass()
-        val savedLinks = mutableListOf<String>()
 
         skrape(HttpFetcher) {
-            request {
-                url = "https://www.ektu.kz/newsevents.aspx?lang=ru"
-                headers = mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                )
-                timeout = 15000
-            }
-
+            request { url = "https://www.ektu.kz/newsevents.aspx?lang=ru" }
             response {
                 extracted = MySimpleDataClass(
                     allParagraphs = document.li {
@@ -58,15 +50,9 @@ class HtmlExtractionService {
                 )
             }
         }
-        for (i in 0 until 10) {
-            LocalDate.parse(extracted.allParagraphs[i].take(10))
-            savedLinks.add(extracted.allLinks[i])
-        }
 
         skrape(HttpFetcher) {
-            request {
-                url = extracted.allLinks.first()+"?lang=ru"
-            }
+            request { url = extracted.allLinks.first()+"?lang=ru" }
             response {
                 news = MySimpleDataClass(
                     allParagraphs = document.p { findAll { eachText } },
@@ -75,19 +61,30 @@ class HtmlExtractionService {
                 )
             }
         }
+
         return News(
-            title = news.paragraph,
-            link = extracted.allLinks.first()+"?lang=ru",
-            photoPath = news.allImages.first()
+            news.paragraph,
+            extracted.allLinks.first(),
+            news.allImages.first()
         )
     }
 }
+
+fun isLatestNews(news: List<String>) = LastMessageRepository.lastMessageParams != news
+
+
 
 
 /*val currentDate = LocalDate.now()
         val mapData = mutableMapOf<String, String>()*/
 
-/*val savedLinks = mutableListOf<String>()
+/*
+headers = mapOf(
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                )
+                timeout = 15000
+
+val savedLinks = mutableListOf<String>()
        for (i in 0 until extracted.allLinks.size) {
            val date = LocalDate.parse(extracted.allParagraphs[i].take(10))
            if (date.isAfter(currentDate.minusWeeks(1))) {

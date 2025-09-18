@@ -62,11 +62,11 @@ class HtmlExtractionService {
                 )
             }
         }
-
+        
         return News(
             title = news.paragraph,
             link = extracted.allLinks[newsIndex]+"?lang=ru",
-            photoPath = news.allImages[0],//first image
+            photoPath = "https://www.ektu.kz"+news.allImages[0],//first image
             previewText = news.allParagraphs[0]//first paragraph
         )
     }

@@ -9,7 +9,6 @@ import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.ParseMode
 import com.github.kotlintelegrambot.entities.TelegramFile
 import kotlinx.coroutines.delay
-import java.io.File
 
 const val botToken = "8365634958:AAF8qUD0i12UiFhhiYbFkpSMAESLD3pGVfo"
 
@@ -42,7 +41,7 @@ suspend fun startBot() {
             save(newsParams)
                 bot.sendPhoto(
                     chatId = chatId,
-                    photo = TelegramFile.ByFile(File("C:/Shit/images.jpeg")),
+                    photo = TelegramFile.ByFileId(news.photoPath),
                     caption = message,
                     parseMode = ParseMode.HTML
             )

@@ -5,15 +5,15 @@ import java.io.File
 
 object LastMessageRepository {
 
-    var lastMessageParams = mutableListOf<String>()
+    var lastMessageParams = ""
     private val file = File("src/main/kotlin/app/repository/lastMessage.json")
 
-    fun save(list: List<String>) {
-        file.writeText(Json.encodeToString(list))
+    fun save(title: String) {
+        file.writeText(Json.encodeToString(title))
     }
 
     fun load() {
-        if (file.readText().isBlank()) save(listOf())
-        lastMessageParams = Json.decodeFromString<List<String>>(file.readText()).toMutableList()
+        if (file.readText().isBlank()) save("")
+        lastMessageParams = Json.decodeFromString<String>(file.readText())
     }
 }

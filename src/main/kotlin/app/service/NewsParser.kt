@@ -58,7 +58,9 @@ class HtmlExtractionService {
                 news = MySimpleDataClass(
                     allParagraphs = document.p { findAll { eachText } },
                     paragraph = document.h1 { findFirst { text } },
-                    allImages = document.findAll { eachSrc.filter { it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG") } }
+                    allImages = document.findAll {
+                        eachSrc.filter { it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG") }
+                    }.map { imgPath-> "https://www.ektu.kz$imgPath" }
                 )
             }
         }
@@ -66,18 +68,20 @@ class HtmlExtractionService {
         return News(
             title = news.paragraph,
             link = extracted.allLinks[newsIndex]+"?lang=ru",
-            photoPath = "https://www.ektu.kz"+news.allImages[0],//first image
+            imagesPaths = news.allImages,
             previewText = news.allParagraphs[0]//first paragraph
         )
     }
 }
 
-fun isLatestNews(news: List<String>) = LastMessageRepository.lastMessageParams != news
+fun isLatestNews(title: String) = LastMessageRepository.lastMessageParams != title
 
 
 
 
-/*val currentDate = LocalDate.now()
+/*
+
+val currentDate = LocalDate.now()
         val mapData = mutableMapOf<String, String>()*/
 
 /*

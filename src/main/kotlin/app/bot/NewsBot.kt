@@ -16,7 +16,9 @@ const val botToken = "8365634958:AAF8qUD0i12UiFhhiYbFkpSMAESLD3pGVfo"
 
 suspend fun startBot() {
 
-    val chatId = ChatId.fromId( -1002967159010)
+    val isMyChat = true
+    val chatId = if (isMyChat) ChatId.fromId(1120184201) else ChatId.fromId( -1002967159010)
+
     val bot = bot {
         token = botToken
     }
@@ -58,7 +60,6 @@ suspend fun startBot() {
                     mediaGroup = MediaGroup.from(*medias.toTypedArray())
                 )
             }
-
         }
         delay(5000L)
     }

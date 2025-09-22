@@ -29,10 +29,18 @@ class HtmlExtractionService {
 
         var extracted = MySimpleDataClass()
         var news = MySimpleDataClass()
-        val newsIndex = 0
+        val newsIndex = 1
 
         skrape(HttpFetcher) {
-            request { url = "https://www.ektu.kz/newsevents.aspx?lang=ru" }
+            request {
+                url = "https://www.ektu.kz/newsevents.aspx?lang=ru"
+                headers = mapOf(
+                    "Cache-Control" to "no-cache",
+                    "Pragma" to "no-cache",
+                    "User-Agent" to "Mozilla/5.0"
+                )
+            }
+
             response {
                 extracted = MySimpleDataClass(
                     allParagraphs = document.li {
@@ -64,12 +72,14 @@ class HtmlExtractionService {
                 )
             }
         }
-        
+
+        fun checkLength(text: String) = if (text.length>742) "" else text
+
         return News(
             title = news.paragraph,
             link = extracted.allLinks[newsIndex]+"?lang=ru",
             imagesPaths = news.allImages,
-            previewText = news.allParagraphs[0]//first paragraph
+            previewText = checkLength(news.allParagraphs[0])//first paragraph
         )
     }
 }

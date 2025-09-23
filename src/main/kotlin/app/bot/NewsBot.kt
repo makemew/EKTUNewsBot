@@ -16,7 +16,7 @@ const val botToken = "8365634958:AAF8qUD0i12UiFhhiYbFkpSMAESLD3pGVfo"
 
 suspend fun startBot() {
 
-    val isMyChat = true
+    val isMyChat = false
     val chatId = if (isMyChat) ChatId.fromId(1120184201) else ChatId.fromId( -1002967159010)
 
     val bot = bot {
@@ -47,7 +47,7 @@ suspend fun startBot() {
                     caption = message,
                     parseMode = ParseMode.HTML
                 )
-            } else {
+            } else if (news.imagesPaths.size>1){
                 val medias = news.imagesPaths.mapIndexed { index, fileId ->
                     InputMediaPhoto(
                         media = TelegramFile.ByFileId(fileId),
@@ -59,8 +59,14 @@ suspend fun startBot() {
                     chatId = chatId,
                     mediaGroup = MediaGroup.from(*medias.toTypedArray())
                 )
+            } else {
+                bot.sendMessage(
+                    chatId = chatId,
+                    text = message,
+                    parseMode = ParseMode.HTML
+                )
             }
         }
-        delay(5000L)
+        delay(30000L)
     }
 }

@@ -29,7 +29,7 @@ class HtmlExtractionService {
 
         var extracted = MySimpleDataClass()
         var news = MySimpleDataClass()
-        val newsIndex = 1
+        val newsIndex = 0
 
         skrape(HttpFetcher) {
             request {
@@ -73,8 +73,6 @@ class HtmlExtractionService {
             }
         }
 
-        fun checkLength(text: String) = if (text.length>742) "" else text
-
         return News(
             title = news.paragraph,
             link = extracted.allLinks[newsIndex]+"?lang=ru",
@@ -83,6 +81,8 @@ class HtmlExtractionService {
         )
     }
 }
+
+fun checkLength(text: String) = if (text.length>742) "" else text
 
 fun isLatestNews(title: String) = LastMessageRepository.lastMessageParams != title
 

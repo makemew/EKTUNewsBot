@@ -10,14 +10,16 @@ import com.github.kotlintelegrambot.entities.ParseMode
 import com.github.kotlintelegrambot.entities.TelegramFile
 import com.github.kotlintelegrambot.entities.inputmedia.InputMediaPhoto
 import com.github.kotlintelegrambot.entities.inputmedia.MediaGroup
+import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.delay
 
-const val botToken = "8365634958:AAF8qUD0i12UiFhhiYbFkpSMAESLD3pGVfo"
+val dotenv = dotenv()
+val botToken = dotenv["BOT_TOKEN"]
 
 suspend fun startBot() {
 
     val isMyChat = true
-    val chatId = if (isMyChat) ChatId.fromId(1120184201) else ChatId.fromId( -1002967159010)
+    val chatId = if (isMyChat) ChatId.fromId(1120184201) else ChatId.fromId(-1002967159010)
 
     val bot = bot {
         token = botToken

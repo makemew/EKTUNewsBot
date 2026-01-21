@@ -16,7 +16,7 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-
+    implementation("io.github.cdimascio:dotenv-kotlin:6.5.1")
 }
 
 application {

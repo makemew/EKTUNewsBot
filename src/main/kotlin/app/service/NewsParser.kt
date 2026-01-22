@@ -13,23 +13,26 @@ import it.skrape.selects.html5.a
 import it.skrape.selects.html5.h1
 import it.skrape.selects.html5.li
 import it.skrape.selects.html5.p
+import it.skrape.selects.html5.span
+import java.time.LocalDate
 
-data class MySimpleDataClass(
-    val httpStatusCode: Int = 0,
-    val httpStatusMessage: String = "",
+data class NewsScrapingDataClass(
+    val allDates: List<String> = listOf(),
     val paragraph: String = "",
     var allParagraphs: List<String> = listOf(),
     val allLinks: List<String> = listOf(),
-    val allImages: List<String> = listOf()
+    val allImages: List<String> = listOf(),
+    val httpStatusCode: Int = 0,
+    val httpStatusMessage: String = "",
 )
 
 class HtmlExtractionService {
 
     fun extract(): News {
 
-        var extracted = MySimpleDataClass()
-        var news = MySimpleDataClass()
-        val newsIndex = 0
+        var extracted = NewsScrapingDataClass()
+        var news = NewsScrapingDataClass()
+
 
         skrape(HttpFetcher) {
             request {
@@ -42,7 +45,12 @@ class HtmlExtractionService {
             }
 
             response {
-                extracted = MySimpleDataClass(
+                extracted = NewsScrapingDataClass(
+                    allDates = document.span {
+                        findAll {
+                            eachText.filter { it.startsWith("20") }
+                        }
+                    },
                     allParagraphs = document.li {
                         findAll {
                             a {
@@ -60,10 +68,12 @@ class HtmlExtractionService {
             }
         }
 
+        val newsIndex: Int = getLastNotPinnedNewsIndex(extracted.allDates)
+
         skrape(HttpFetcher) {
             request { url = extracted.allLinks[newsIndex]+"?lang=ru" }
             response {
-                news = MySimpleDataClass(
+                news = NewsScrapingDataClass(
                     allParagraphs = document.p { findAll { eachText } },
                     paragraph = document.h1 { findFirst { text } },
                     allImages = document.findAll {
@@ -73,7 +83,7 @@ class HtmlExtractionService {
             }
         }
 
-        return News(
+        return  News(
             title = news.paragraph,
             link = extracted.allLinks[newsIndex]+"?lang=ru",
             imagesPaths = news.allImages,
@@ -85,6 +95,13 @@ class HtmlExtractionService {
 fun checkLength(text: String) = if (text.length>742) "" else text
 
 fun isLatestNews(title: String) = LastMessageRepository.lastMessageParams != title
+
+fun getLastNotPinnedNewsIndex(newsDates: List<String>) =
+    newsDates.take(10)
+        .withIndex()
+        .maxBy { LocalDate.parse(it.value) }
+        .index
+
 
 
 

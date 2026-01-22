@@ -36,9 +36,9 @@ suspend fun startBot() {
                 val message = buildString {
                     append("<b>${news.title}</b>\n\n")
                     if (news.previewText.isNotBlank()){
-                        append(news.previewText+"\n\n")
+                        append(news.previewText+"\n\n\n")
                     }
-                    append("<a href=\"${news.link}\">Продолжение на сайте ВКТУ>>></a>")
+                    append("<a href=\"${news.link}\">${randomLink()}</a>")
                 }
 
                 if (isLatestNews(news.title)) {
@@ -71,7 +71,7 @@ suspend fun startBot() {
                         )
                     }
                 }
-                delay(30_000L)
+                delay(60_000L)
 
             } catch (e: Exception) {
                 bot.sendMessage(
@@ -101,4 +101,17 @@ fun exceptionMessage(e: Exception, title: String): String {
 Stack trace:
 $stackSnippet
     """.trimIndent()
+}
+
+fun randomLink(): String {
+    return listOf("📌", "🔗", "➡️", "👉", "🔍").random() + " " +
+            listOf(
+                "Полная новость на сайте ВКТУ",
+                "Подробнее на сайте ВКТУ",
+                "Перейти к новости",
+                "Читать полностью",
+                "Подробности на официальном сайте",
+                "Смотреть на сайте ВКТУ",
+                "Читать на сайте ВКТУ"
+            ).random()
 }

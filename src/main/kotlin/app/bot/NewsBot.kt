@@ -14,7 +14,7 @@ import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.delay
 
 val dotenv = dotenv()
-val botToken = dotenv["BOT_TOKEN"]
+val botToken: String = dotenv["BOT_TOKEN"]
 
 suspend fun startBot() {
 
@@ -25,50 +25,80 @@ suspend fun startBot() {
         token = botToken
     }
 
-    bot.startPolling()
+    try {
+        bot.startPolling()
 
-    while (true) {
-        load()
-        val news = HtmlExtractionService().extract()
+        while (true) {
+            try {
+                load()
+                val news = HtmlExtractionService().extract()
 
-        val message = buildString {
-            append("<b>${news.title}</b>\n\n")
-            if (news.previewText.isNotBlank()){
-                append(news.previewText+"\n\n")
-            }
-            append("<a href=\"${news.link}\">Продолжение на сайте ВКТУ>>></a>")
-        }
+                val message = buildString {
+                    append("<b>${news.title}</b>\n\n")
+                    if (news.previewText.isNotBlank()){
+                        append(news.previewText+"\n\n")
+                    }
+                    append("<a href=\"${news.link}\">Продолжение на сайте ВКТУ>>></a>")
+                }
 
-        if (isLatestNews(news.title)) {
-            save(news.title)
+                if (isLatestNews(news.title)) {
+                    save(news.title)
 
-            if (news.imagesPaths.size == 1) {
-                bot.sendPhoto(
-                    chatId = chatId,
-                    photo = TelegramFile.ByFileId(news.imagesPaths[0]),
-                    caption = message,
-                    parseMode = ParseMode.HTML
-                )
-            } else if (news.imagesPaths.size>1){
-                val medias = news.imagesPaths.mapIndexed { index, fileId ->
-                    InputMediaPhoto(
-                        media = TelegramFile.ByFileId(fileId),
-                        caption = if (index == 0) message else null,
-                        parseMode = if (index == 0) "HTML" else null
-                    )
-                }.take(3)
-                bot.sendMediaGroup(
-                    chatId = chatId,
-                    mediaGroup = MediaGroup.from(*medias.toTypedArray())
-                )
-            } else {
+                    if (news.imagesPaths.size == 1) {
+                        bot.sendPhoto(
+                            chatId = chatId,
+                            photo = TelegramFile.ByFileId(news.imagesPaths[0]),
+                            caption = message,
+                            parseMode = ParseMode.HTML
+                        )
+                    } else if (news.imagesPaths.size>1){
+                        val medias = news.imagesPaths.mapIndexed { index, fileId ->
+                            InputMediaPhoto(
+                                media = TelegramFile.ByFileId(fileId),
+                                caption = if (index == 0) message else null,
+                                parseMode = if (index == 0) "HTML" else null
+                            )
+                        }.take(3)
+                        bot.sendMediaGroup(
+                            chatId = chatId,
+                            mediaGroup = MediaGroup.from(*medias.toTypedArray())
+                        )
+                    } else {
+                        bot.sendMessage(
+                            chatId = chatId,
+                            text = message,
+                            parseMode = ParseMode.HTML
+                        )
+                    }
+                }
+                delay(30_000L)
+
+            } catch (e: Exception) {
                 bot.sendMessage(
-                    chatId = chatId,
-                    text = message,
+                    chatId = ChatId.fromId(1120184201),
+                    text = exceptionMessage(e, "Main logic error"),
                     parseMode = ParseMode.HTML
                 )
+                delay(15*60_000L)
             }
         }
-        delay(30000L)
+    } catch (e: Exception) {
+        bot.sendMessage(
+            chatId = ChatId.fromId(1120184201),
+            text = exceptionMessage(e, "Bot crashed"),
+            parseMode = ParseMode.HTML
+        )
     }
+}
+
+fun exceptionMessage(e: Exception, title: String): String {
+    val stackSnippet = e.stackTrace
+        .take(3)
+        .joinToString("\n")
+    return """
+⚠️ <b>$title</b>: ${e.message}
+    
+Stack trace:
+$stackSnippet
+    """.trimIndent()
 }

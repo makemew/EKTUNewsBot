@@ -16,23 +16,11 @@ import it.skrape.selects.html5.p
 import it.skrape.selects.html5.span
 import java.time.LocalDate
 
-data class NewsScrapingDataClass(
-    val allDates: List<String> = listOf(),
-    val paragraph: String = "",
-    var allParagraphs: List<String> = listOf(),
-    val allLinks: List<String> = listOf(),
-    val allImages: List<String> = listOf(),
-    val httpStatusCode: Int = 0,
-    val httpStatusMessage: String = "",
-)
-
 class HtmlExtractionService {
 
     fun extract(): News {
-
         var extracted = NewsScrapingDataClass()
         var news = NewsScrapingDataClass()
-
 
         skrape(HttpFetcher) {
             request {
@@ -82,17 +70,14 @@ class HtmlExtractionService {
                 )
             }
         }
-
-        return  News(
+        return News(
             title = news.paragraph,
             link = extracted.allLinks[newsIndex]+"?lang=ru",
             imagesPaths = news.allImages,
-            previewText = checkLength(news.allParagraphs[0])//first paragraph
+            body = news.allParagraphs.joinToString("\n")
         )
     }
 }
-
-fun checkLength(text: String) = if (text.length>742) "" else text
 
 fun isLatestNews(title: String) = LastMessageRepository.lastMessageParams != title
 
@@ -102,41 +87,17 @@ fun getLastNotPinnedNewsIndex(newsDates: List<String>) =
         .maxBy { LocalDate.parse(it.value) }
         .index
 
+fun checkLength(text: String) = if (text.length>742) "" else text
 
 
+data class NewsScrapingDataClass(
+    val allDates: List<String> = listOf(),
+    val paragraph: String = "",
+    var allParagraphs: List<String> = listOf(),
+    val allLinks: List<String> = listOf(),
+    val allImages: List<String> = listOf(),
+    val httpStatusCode: Int = 0,
+    val httpStatusMessage: String = "",
+)
 
 
-/*
-
-val currentDate = LocalDate.now()
-        val mapData = mutableMapOf<String, String>()*/
-
-/*
-headers = mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                )
-                timeout = 15000
-
-val savedLinks = mutableListOf<String>()
-       for (i in 0 until extracted.allLinks.size) {
-           val date = LocalDate.parse(extracted.allParagraphs[i].take(10))
-           if (date.isAfter(currentDate.minusWeeks(1))) {
-               savedLinks.add(extracted.allLinks[i])
-           }
-       }
-
-       for (i in 0 until savedLinks.size) {
-           val newsPage = skrape(HttpFetcher) {
-               request {
-                   url = extracted.allLinks[i]+"?lang=ru"
-               }
-               response {
-                   MySimpleDataClass(
-                       allParagraphs = document.p { findAll { eachText } },
-                       paragraph = document.h1 { findFirst { text } },
-                       allImages = document.findAll { eachSrc.filter { it.endsWith("jpeg") || it.endsWith("jpg") || it.endsWith("JPG") } }
-                   )
-               }
-           }
-           mapData[newsPage.paragraph] = newsPage.allParagraphs.joinToString("\n\n")
-       }*/

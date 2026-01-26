@@ -23,7 +23,7 @@ val apiToken: String = dotenv["API_TOKEN"]
 
 suspend fun startBot() {
 
-    val isMyChat = true
+    val isMyChat = false
     val chatId = if (isMyChat) ChatId.fromId(1120184201) else ChatId.fromId(-1002967159010)
 
     val bot = bot {
